@@ -175,9 +175,22 @@ with entry_tab:
 
     if not st.session_state.manual_sales.empty:
         st.subheader("Entered Sales")
-        st.dataframe(st.session_state.manual_sales, use_container_width=True)
+        edited_sales = st.data_editor(
+            st.session_state.manual_sales,
+            use_container_width=True,
+            num_rows="dynamic",
+            key="manual_sales_editor",
+        )
 
-        if st.button("Clear Entered Sales"):
+        save_col, clear_col = st.columns([1, 4])
+
+        if save_col.button("Save Changes"):
+            st.session_state.manual_sales = edited_sales[REQUIRED_COLUMNS].reset_index(
+                drop=True
+            )
+            st.success("Changes saved.")
+
+        if clear_col.button("Clear Entered Sales"):
             st.session_state.manual_sales = empty_sales_data()
             st.rerun()
 
