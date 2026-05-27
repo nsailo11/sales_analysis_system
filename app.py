@@ -4,6 +4,8 @@ import plotly.express as px
 
 st.set_page_config(page_title="Sales Data Analysis System", layout="wide")
 
+SAVED_DATA_FILE = "saved_sales.csv"
+
 REQUIRED_COLUMNS = [
     "Order ID",
     "Date",
@@ -18,6 +20,26 @@ REQUIRED_COLUMNS = [
 
 def empty_sales_data():
     return pd.DataFrame(columns=REQUIRED_COLUMNS)
+
+
+def load_saved_sales():
+    try:
+        saved_data = pd.read_csv(SAVED_DATA_FILE)
+    except FileNotFoundError:
+        return empty_sales_data()
+
+    missing_columns = [
+        column for column in REQUIRED_COLUMNS if column not in saved_data.columns
+    ]
+
+    if missing_columns:
+        return empty_sales_data()
+
+    return saved_data[REQUIRED_COLUMNS]
+
+
+def save_sales(data):
+    data[REQUIRED_COLUMNS].to_csv(SAVED_DATA_FILE, index=False)
 
 
 def prepare_sales_data(data):
@@ -124,7 +146,7 @@ def show_dashboard(data):
 
 
 if "manual_sales" not in st.session_state:
-    st.session_state.manual_sales = empty_sales_data()
+    st.session_state.manual_sales = load_saved_sales()
 
 st.title("Sales Data Analysis System")
 
@@ -171,6 +193,7 @@ with entry_tab:
                     [st.session_state.manual_sales, new_sale],
                     ignore_index=True,
                 )
+                save_sales(st.session_state.manual_sales)
                 st.success("Sale added successfully.")
 
     if not st.session_state.manual_sales.empty:
@@ -188,10 +211,12 @@ with entry_tab:
             st.session_state.manual_sales = edited_sales[REQUIRED_COLUMNS].reset_index(
                 drop=True
             )
+            save_sales(st.session_state.manual_sales)
             st.success("Changes saved.")
 
         if clear_col.button("Clear Entered Sales"):
             st.session_state.manual_sales = empty_sales_data()
+            save_sales(st.session_state.manual_sales)
             st.rerun()
 
 with upload_tab:
