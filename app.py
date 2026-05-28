@@ -214,6 +214,16 @@ with entry_tab:
             save_sales(st.session_state.manual_sales)
             st.success("Changes saved.")
 
+        entered_sales_csv = st.session_state.manual_sales.to_csv(index=False).encode(
+            "utf-8"
+        )
+        st.download_button(
+            "Download Entered Sales CSV",
+            data=entered_sales_csv,
+            file_name="entered_sales.csv",
+            mime="text/csv",
+        )
+
         if clear_col.button("Clear Entered Sales"):
             st.session_state.manual_sales = empty_sales_data()
             save_sales(st.session_state.manual_sales)
